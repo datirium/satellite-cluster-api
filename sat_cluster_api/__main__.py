@@ -89,9 +89,12 @@ def post_dags_dag_runs(
         )
     ).decode("utf-8")
 
+    cwl_json = json.loads(uncompressed)
+    print(f'cwl_json: {cwl_json}')
+
     # save file
     with open(cwl_filename, 'w') as outfile:
-        yaml.dump(json.loads(uncompressed), outfile)
+        yaml.dump(json.loads(uncompressed), outfile, default_flow_style=False, allow_unicode = True)#, encoding = None)
 
 
     ### run toil script with params
