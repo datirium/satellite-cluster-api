@@ -1,5 +1,12 @@
 import connexion
+import urllib
 import os
+import json
+import yaml
+from datetime import datetime
+import base64
+import gzip
+
 # app = connexion.FlaskApp(__name__)
 
 app = connexion.FlaskApp(
@@ -22,8 +29,7 @@ def test_post(cwlLocation: str):
 
 def post_dags_dag_runs(
     dag_id: str, run_id: str, 
-    conf: str, #workflow, #workflow is 'file' type?
-    workflow_content: str,
+    conf: str, workflow_content: str,
 ): 
     """
     TODO: 
@@ -31,13 +37,45 @@ def post_dags_dag_runs(
         - clean up dag runs (stop currently running one since getting this means sample was restarted)
         - start cwlToil based on config and workflow_content
     """
-    bash_script = f'echo dag_id:{dag_id} run_id: {run_id} config:{conf} workflow_content:{workflow_content}'
-    os.system(bash_script)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    # print(f'dirname: {dir_path}')
+
+    ### save job file
+    conf_dict = json.loads(conf)
+    output_folder = conf_dict['job']['outputs_folder']
+    # remove outputs_folder from job
+    del conf_dict['job']['outputs_folder']
+    # print(f'config dict: {conf_dict}')
+    # print(f'outptus folder: {output_folder}')
+    job_filename = f'{dir_path}/{run_id}/job.yml'
+    # print(f'file name: {job_filename}')
+    os.makedirs(os.path.dirname(job_filename), exist_ok=True)
+    with open(job_filename, 'w') as outfile:
+        yaml.dump(conf_dict, outfile, default_flow_style=False)
+        # print(f'outfile: {outfile}')
+
+
+    ### save cwl file
+    # base64 decode
+    # decoded_cwl = base64.decode(workflow_content, 'utf-8')
+    # unzip
+    # unzipped_cwl = gzip.decompress(workflow_content)#decoded_cwl)
+    # print(f'unzipped cwl: {unzipped_cwl}')
+    # # save to cwl file
+    # cwl_filename = f'{dir_path}/{run_id}/workflow.cwl'
+    # with open(cwl_filename, 'w') as outfile:
+    #     yaml.dump(unzipped_cwl, outfile, default_flow_style=False)
+
+    ### run toil script with params
+    bash_command = f'bash test_script.sh {workflow_content} {job_filename} {output_folder}'
+    os.system(f'{bash_command} &')
+
+    start_date_str = datetime.now()
     return {
         'dag_id': dag_id or '1',
         'run_id': run_id or '1',
-        'execution_date': '',
-        'start_date': '',
+        'execution_date': start_date_str,
+        'start_date': start_date_str,
         'state': 'running'
     }
 
