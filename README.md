@@ -12,7 +12,7 @@ requires poetry (```pip install poetry```)
 conda create -n cluster-api python=3.8.12
 conda activate cluster-api
 # setup dependencies
-pip isntall poetry
+pip install poetry
 poetry install
 ```
 
@@ -20,9 +20,16 @@ poetry install
 
 ## local runs
 ```bash
-poetry run python sat_cluster_api/server.py
-# or just
-# python sat_cluster_api/server.py
+# after running 'poetry install'
+start-cluster-api
+# or: poetry run start-cluster-api
 ```
 
 then visit [http://localhost:8080/api/experimental/ui/](http://localhost:8080/api/experimental/ui/) for a swagger UI of api
+
+
+## builds
+
+build package with ```poetry build```
+install build with `pip install dist/<FILE_NAME>.whl`
+run installed package with `python -m sat_cluster_api`

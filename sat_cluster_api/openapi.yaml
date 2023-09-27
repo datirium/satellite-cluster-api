@@ -19,7 +19,7 @@ paths:
       summary: test GET
       description: >-
         some description
-      operationId: server.test_get
+      operationId: sat_cluster_api.__main__.test_get
       # consumes:
       #    - multipart/form-data
       responses:
@@ -33,7 +33,7 @@ paths:
       summary: test POST
       description: >-
         some description
-      operationId: server.test_post
+      operationId: sat_cluster_api.__main__.test_post
       responses:
         "200":
           description: Reference information about created dag and dag_run.
@@ -61,7 +61,7 @@ paths:
            - cleaning up correspondent records in DB
            - removing outdated dags for the same cwlid if no running dag_runs were found for them
         3. Creates new dag_run for dag_id with run_id and optional conf
-      operationId: server.post_dags_dag_runs
+      operationId: sat_cluster_api.__main__.post_dags_dag_runs
       consumes:
          - multipart/form-data
       responses:
