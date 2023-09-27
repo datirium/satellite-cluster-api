@@ -1,0 +1,163 @@
+swagger: "2.0"
+info:
+  title: CWL-Airflow API
+  version: 1.0.1
+basePath: "/api/experimental"
+schemes:
+  - https
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+
+
+paths:
+
+  /test:
+    get:
+      summary: test GET
+      description: >-
+        some description
+      operationId: server.test_get
+      # consumes:
+      #    - multipart/form-data
+      responses:
+        "200":
+          description: Reference information about created dag and dag_run.
+          schema:
+            $ref: "#/definitions/Test"
+      tags:
+        - TEST
+    post:
+      summary: test POST
+      description: >-
+        some description
+      operationId: server.test_post
+      responses:
+        "200":
+          description: Reference information about created dag and dag_run.
+          schema:
+            $ref: "#/definitions/Test"
+      parameters:
+        - name: cwlLocation
+          description: path to cwl to use for cwlToil
+          in: query
+          required: true
+          type: string
+      tags:
+        - TEST
+
+  /dags/dag_runs:
+    post:
+      summary: Combined logic from /dags and /dag_runs POSTs
+      description: >-
+        1. Creates new dag with dag_id from the attached workflow.cwl file or its compressed content.
+           Either workflow or workflow_content should be provided. 
+           dag_id should follow the naming rule "cwlid-commitsha", otherwise outdated dags won't be deleted.
+        2. Tries to delete all previous dag_runs for the provided dag_id and run_id, which also includes
+           - stopping all running tasks for the current dag_id and run_id
+           - removing correspondent temporary data
+           - cleaning up correspondent records in DB
+           - removing outdated dags for the same cwlid if no running dag_runs were found for them
+        3. Creates new dag_run for dag_id with run_id and optional conf
+      operationId: server.post_dags_dag_runs
+      consumes:
+         - multipart/form-data
+      responses:
+        "200":
+          description: Reference information about created dag and dag_run.
+          schema:
+            $ref: "#/definitions/PostDagRunsResponse"
+        "400":
+          description: The request is malformed.
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: The request is unauthorized.
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "403":
+          description: The requester is not authorized to perform this action.
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "500":
+          description: An unexpected error occurred.
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+      parameters:
+        - name: dag_id
+          description: Dag identifier, follow the naming rule "cwlid-commitsha"
+          in: query
+          required: true
+          type: string
+        - name: run_id
+          description: Run identifier
+          in: query
+          required: true
+          type: string
+        - name: conf
+          description: Run configuration (JSON-formatted string)
+          in: query
+          required: false
+          type: string
+        # - name: workflow
+        #   description: CWL workflow file with embedded tools and all other dependencies
+        #   in: formData
+        #   required: false
+        #   type: file
+        - name: workflow_content
+          description: base64 encoded gzip compressed workflow content
+          in: formData
+          required: false
+          type: string
+      tags:
+        - CWL-TOIL
+
+
+
+definitions:
+  Test:
+    type: string
+  
+  PostDagRunsResponse:
+    type: object
+    required:
+     - dag_id
+     - run_id
+     - execution_date
+     - state
+     - start_date
+    properties:
+      dag_id:
+        type: string
+      run_id:
+        type: string
+      execution_date:
+        type: string
+        format: date-time
+      start_date:
+        type: string
+        format: date-time
+      state:
+        $ref: "#/definitions/DagRunState"
+    description: Reference information about created dag_run.
+
+  DagRunState:
+    type: string
+    enum:
+      - running
+      - success
+      - failed
+    description: Dag run state
+
+  ErrorResponse:
+    type: object
+    properties:
+      msg:
+        type: string
+        description: A detailed error message.
+      status_code:
+        type: integer
+        description: The integer representing the HTTP status code (e.g. 200, 404).
+    description: An object that can optionally include information about the error.
