@@ -6,6 +6,7 @@ import yaml
 from datetime import datetime
 import base64
 import gzip
+from ruamel.yaml import YAML
 
 # app = connexion.FlaskApp(__name__)
 
@@ -26,6 +27,29 @@ def test_get():
 
 def test_post(cwlLocation: str):
     return f'given str: {cwlLocation}', 200
+
+def load_yaml(location):
+    """
+    Tries to load yaml document from file or string.
+
+    If file cannot be loaded, assumes that location
+    is a string and tries to load yaml from string.
+
+    If string wasn't parsed and YAML didn't raise
+    YAMLError, check ir the parsed result is the same
+    as input. If yes, raise ValueError
+    """
+
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    try:
+        with open(location, "r") as input_stream:
+            data = yaml.load(input_stream)
+    except (FileNotFoundError, OSError):           # catch OSError raised when "filename too long"
+        data = yaml.load(location)
+    if data == location:
+        raise ValueError
+    return data
 
 def post_dags_dag_runs(
     dag_id: str, run_id: str, 
@@ -56,18 +80,22 @@ def post_dags_dag_runs(
 
 
     ### save cwl file
-    # base64 decode
-    # decoded_cwl = base64.decode(workflow_content, 'utf-8')
+    cwl_filename = f'{dir_path}/{run_id}/workflow.cwl'
+    
     # unzip
-    # unzipped_cwl = gzip.decompress(workflow_content)#decoded_cwl)
-    # print(f'unzipped cwl: {unzipped_cwl}')
-    # # save to cwl file
-    # cwl_filename = f'{dir_path}/{run_id}/workflow.cwl'
-    # with open(cwl_filename, 'w') as outfile:
-    #     yaml.dump(unzipped_cwl, outfile, default_flow_style=False)
+    uncompressed = gzip.decompress(
+        base64.b64decode(
+            workflow_content.encode("utf-8") + b'=='       # safety measure to prevent incorrect padding error
+        )
+    ).decode("utf-8")
+
+    # save file
+    with open(cwl_filename, 'w') as outfile:
+        yaml.dump(json.loads(uncompressed), outfile)
+
 
     ### run toil script with params
-    bash_command = f'bash test_script.sh {workflow_content} {job_filename} {output_folder}'
+    bash_command = f'bash test_script.sh {cwl_filename} {job_filename} {output_folder}'
     os.system(f'{bash_command} &')
 
     start_date_str = datetime.now()

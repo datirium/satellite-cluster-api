@@ -11,6 +11,7 @@ start-cluster-api = "sat_cluster_api.__main__:run_app"
 [tool.poetry.dependencies]
 python = "^3.8.12"
 connexion = {extras = ["swagger-ui"], version = "^2.14.2"}
+ruamel-yaml = "^0.17.32"
 
 
 [build-system]
