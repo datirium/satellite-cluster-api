@@ -115,7 +115,7 @@ app.add_api(specification="openapi.yaml")
 
 if __name__ == '__main__':
     # run our standalone gevent server
-    app.run(host='127.0.0.1', port=8080)
+    app.run(host='127.0.0.1', port=8081)
 
 def run_app():
-    app.run(host='127.0.0.1', port=8080)
+    app.run(host='127.0.0.1', port=8081)

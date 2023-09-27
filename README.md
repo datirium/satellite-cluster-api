@@ -25,7 +25,7 @@ start-cluster-api
 # or: poetry run start-cluster-api
 ```
 
-then visit [http://localhost:8080/api/experimental/ui/](http://localhost:8080/api/experimental/ui/) for a swagger UI of api
+then visit [http://localhost:8081/api/experimental/ui/](http://localhost:8081/api/experimental/ui/) for a swagger UI of api
 
 
 ## builds

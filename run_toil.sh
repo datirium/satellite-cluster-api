@@ -11,7 +11,7 @@ CPU=${7:-"4"}
 source /home/scidap/venv/bin/activate
 
 export TOIL_LSF_ARGS="-q docker"
-export TMPDIR="${TMPDIR}"
+# export TMPDIR="${TMPDIR}"
 
 mkdir -p $OUTDIR
 mkdir -p $LOGS
