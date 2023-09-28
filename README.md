@@ -1,9 +1,9 @@
 
 
 ## ENV
-python@3.8.12
+python@3.8.12 (>=3.6)
 
-requires poetry (```pip install poetry```)
+requires poetry (```pip install poetry```) and shiv (```pip install shiv```)
 
 ## First Time Setup
 
@@ -13,10 +13,24 @@ conda create -n cluster-api python=3.8.12
 conda activate cluster-api
 # setup dependencies
 pip install poetry
+pip isntall shiv
 poetry install
 ```
 
 > poetry chosen for easy builds
+
+## Building 
+
+### for pip install
+
+run ```poetry build``` and save .whl file
+
+## for single executable
+
+(requires shiv be installed)
+
+run ```shiv -c start-cluster-api -o start-cluster-api .```
+
 
 ## local runs
 
