@@ -1,3 +1,11 @@
+"""
+The satellite cluster api expects 2 arguments when run
+1: the directory (relative to user home_dir) where job/cwl files should be stored
+    (default = 'tmp_job_dir') 
+2: the directory (relative to user home_dir) where the run_toil script can be found
+    (default = 'scripts')
+"""
+
 import connexion
 import urllib
 import os
@@ -7,8 +15,19 @@ from datetime import datetime
 import base64
 import gzip
 from ruamel.yaml import YAML
+import sys
 
 # app = connexion.FlaskApp(__name__)
+
+home_directory = os.path.expanduser( '~' )
+# print(f'homeDir: {home_directory}')
+cli_args = sys.argv
+# for i, arg in enumerate(cli_args):
+#     print(f'Arg #{i}: {arg}')
+job_dir = cli_args[1] if len(cli_args) > 1 else 'tmp_job_dir'
+script_dir = cli_args[2] if len(cli_args) > 2 else 'scripts'
+# output_job_dir = f'{home_directory}/{job_dir}' 
+# print(f'output_job_dir: {output_job_dir}')
 
 app = connexion.FlaskApp(
     __name__
@@ -28,29 +47,6 @@ def test_get():
 def test_post(cwlLocation: str):
     return f'given str: {cwlLocation}', 200
 
-def load_yaml(location):
-    """
-    Tries to load yaml document from file or string.
-
-    If file cannot be loaded, assumes that location
-    is a string and tries to load yaml from string.
-
-    If string wasn't parsed and YAML didn't raise
-    YAMLError, check ir the parsed result is the same
-    as input. If yes, raise ValueError
-    """
-
-    yaml = YAML()
-    yaml.preserve_quotes = True
-    try:
-        with open(location, "r") as input_stream:
-            data = yaml.load(input_stream)
-    except (FileNotFoundError, OSError):           # catch OSError raised when "filename too long"
-        data = yaml.load(location)
-    if data == location:
-        raise ValueError
-    return data
-
 def post_dags_dag_runs(
     dag_id: str, run_id: str, 
     conf: str, workflow_content: str,
@@ -61,7 +57,8 @@ def post_dags_dag_runs(
         - clean up dag runs (stop currently running one since getting this means sample was restarted)
         - start cwlToil based on config and workflow_content
     """
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = f'{home_directory}/{job_dir}' 
+    # dir_path = os.path.dirname(os.path.realpath(__file__))
     # print(f'dirname: {dir_path}')
 
     ### save job file
@@ -98,7 +95,7 @@ def post_dags_dag_runs(
 
 
     ### run toil script with params
-    bash_command = f'bash test_script.sh {cwl_filename} {job_filename} {output_folder}'
+    bash_command = f'bash {home_directory}/{script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder}'
     os.system(f'{bash_command} &')
 
     start_date_str = datetime.now()
