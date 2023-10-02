@@ -101,16 +101,17 @@ paths:
           in: query
           required: false
           type: string
-        # - name: workflow
-        #   description: CWL workflow file with embedded tools and all other dependencies
-        #   in: formData
-        #   required: false
-        #   type: file
         - name: workflow_content
           description: base64 encoded gzip compressed workflow content
           in: formData
           required: false
           type: string
+        ## TODO: for when sat removes workflow data from query and sends in form (stringified)
+        # - name: workflow_data
+        #   description: 
+        #   in: formData
+        #   required: false
+        #   type: string
       tags:
         - CWL-TOIL
 

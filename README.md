@@ -27,23 +27,24 @@ run ```poetry build``` and save .whl file
 
 ## for single executable
 
-(requires shiv be installed)
+(requires shiv be installed) (swap to python 3.6.8)
 
 run ```shiv -c start-cluster-api -o start-cluster-api .```
 
 
 ## local runs
 
-starting api takes 2 args
+starting api takes 3 args
 1: path to dir where job/cwl files for toil should be saved
 2: path to where toil run script 
+3: path to tmp dir for cwl-toil
 
 > BOTH paths are relative to user home
 
 ```bash
 # after running 'poetry install'
-start-cluster-api job/cwl/output/dir toil/script/dir
-# or: poetry run start-cluster-api job/cwl/output/dir toil/script/dir
+start-cluster-api /absolute/path/to/job/cwl/output/dir /absolute/path/to/toil/script/dir /absolute/path/to/tmp/output/dir
+# or: poetry run start-cluster-api job/cwl/output/dir toil/script/dir tmp/output/dir
 ```
 
 then visit [http://localhost:8081/api/experimental/ui/](http://localhost:8081/api/experimental/ui/) for a swagger UI of api

@@ -19,15 +19,14 @@ import sys
 
 # app = connexion.FlaskApp(__name__)
 
-home_directory = os.path.expanduser( '~' )
-# print(f'homeDir: {home_directory}')
+# home_directory = os.path.expanduser( '~' )
 cli_args = sys.argv
 # for i, arg in enumerate(cli_args):
 #     print(f'Arg #{i}: {arg}')
 job_dir = cli_args[1] if len(cli_args) > 1 else 'tmp_job_dir'
 script_dir = cli_args[2] if len(cli_args) > 2 else 'scripts'
-# output_job_dir = f'{home_directory}/{job_dir}' 
-# print(f'output_job_dir: {output_job_dir}')
+tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/data/barskilab/scidap_data'
+
 
 app = connexion.FlaskApp(
     __name__
@@ -57,8 +56,7 @@ def post_dags_dag_runs(
         - clean up dag runs (stop currently running one since getting this means sample was restarted)
         - start cwlToil based on config and workflow_content
     """
-    dir_path = f'{home_directory}/{job_dir}' 
-    # dir_path = os.path.dirname(os.path.realpath(__file__))
+    # dir_path = f'{home_directory}/{job_dir}' 
     # print(f'dirname: {dir_path}')
 
     ### save job file
@@ -68,7 +66,7 @@ def post_dags_dag_runs(
     del conf_dict['job']['outputs_folder']
     # print(f'config dict: {conf_dict}')
     # print(f'outptus folder: {output_folder}')
-    job_filename = f'{dir_path}/{run_id}/job.yml'
+    job_filename = f'{job_dir}/{run_id}/job.yml'
     # print(f'file name: {job_filename}')
     os.makedirs(os.path.dirname(job_filename), exist_ok=True)
     with open(job_filename, 'w') as outfile:
@@ -77,7 +75,7 @@ def post_dags_dag_runs(
 
 
     ### save cwl file
-    cwl_filename = f'{dir_path}/{run_id}/workflow.cwl'
+    cwl_filename = f'{job_dir}/{run_id}/workflow.cwl'
     
     # unzip
     uncompressed = gzip.decompress(
@@ -87,7 +85,7 @@ def post_dags_dag_runs(
     ).decode("utf-8")
 
     cwl_json = json.loads(uncompressed)
-    print(f'cwl_json: {cwl_json}')
+    # print(f'cwl_json: {cwl_json}')
 
     # save file
     with open(cwl_filename, 'w') as outfile:
@@ -95,13 +93,13 @@ def post_dags_dag_runs(
 
 
     ### run toil script with params
-    bash_command = f'bash {home_directory}/{script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder}'
+    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id}'
     os.system(f'{bash_command} &')
 
     start_date_str = datetime.now()
     return {
-        'dag_id': dag_id or '1',
-        'run_id': run_id or '1',
+        'dag_id': dag_id or 'unknown',
+        'run_id': run_id or 'unknown',
         'execution_date': start_date_str,
         'start_date': start_date_str,
         'state': 'running'
