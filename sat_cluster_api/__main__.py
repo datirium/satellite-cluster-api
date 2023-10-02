@@ -1,9 +1,11 @@
 """
-The satellite cluster api expects 2 arguments when run
-1: the directory (relative to user home_dir) where job/cwl files should be stored
-    (default = 'tmp_job_dir') 
-2: the directory (relative to user home_dir) where the run_toil script can be found
-    (default = 'scripts')
+The satellite cluster api expects 3 arguments when run
+1: the directory (absolute_path) where job/cwl files should be stored
+    (default = '/home/scidap/tmp_job_dir') 
+2: the directory (absolute_path) where the run_toil script can be found
+    (default = '/home/scidap/scripts')
+3: the directory (absolute_path) where temporary run data is stored
+    (default = '/data/barskilab/scidap_data')
 """
 
 import connexion
@@ -17,23 +19,17 @@ import gzip
 from ruamel.yaml import YAML
 import sys
 
-# app = connexion.FlaskApp(__name__)
-
 # home_directory = os.path.expanduser( '~' )
 cli_args = sys.argv
 # for i, arg in enumerate(cli_args):
 #     print(f'Arg #{i}: {arg}')
-job_dir = cli_args[1] if len(cli_args) > 1 else 'tmp_job_dir'
-script_dir = cli_args[2] if len(cli_args) > 2 else 'scripts'
+job_dir = cli_args[1] if len(cli_args) > 1 else '/home/scidap/tmp_job_dir'
+script_dir = cli_args[2] if len(cli_args) > 2 else '/home/scidap/scripts'
 tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/data/barskilab/scidap_data'
 
 
 app = connexion.FlaskApp(
     __name__
-    # 'localhost', # host=args.host,
-    # port=args.port,
-    # specification_dir="openapi",
-    # server="tornado"
 )
 
 
@@ -47,31 +43,34 @@ def test_post(cwlLocation: str):
     return f'given str: {cwlLocation}', 200
 
 def post_dags_dag_runs(
-    dag_id: str, run_id: str, 
-    conf: str, workflow_content: str,
+    # dag_id: str, run_id: str, 
+    # conf: str, 
+    workflow_content: str,
+    workflow_data: str
 ): 
     """
     TODO: 
-        - post dag (save to DB if needed)
-        - clean up dag runs (stop currently running one since getting this means sample was restarted)
-        - start cwlToil based on config and workflow_content
+        - handle if stopping dag run
     """
-    # dir_path = f'{home_directory}/{job_dir}' 
-    # print(f'dirname: {dir_path}')
 
-    ### save job file
-    conf_dict = json.loads(conf)
+    ## get data from params
+    run_data = json.loads(workflow_data)
+    # print(f'run data: {run_data}')
+    dag_id = run_data['dag_id']
+    run_id = run_data['run_id']
+    conf_dict = run_data['conf'] # json.loads(run_data['conf']) # json.loads(conf)
+    # print(f'config dict: {conf_dict}')
     output_folder = conf_dict['job']['outputs_folder']
     # remove outputs_folder from job
     del conf_dict['job']['outputs_folder']
-    # print(f'config dict: {conf_dict}')
-    # print(f'outptus folder: {output_folder}')
+
+
+    ### save job file
     job_filename = f'{job_dir}/{run_id}/job.yml'
-    # print(f'file name: {job_filename}')
-    os.makedirs(os.path.dirname(job_filename), exist_ok=True)
+    print(f'file name: {job_filename}')
+    os.makedirs(os.path.dirname(f'{job_dir}/{run_id}/'), exist_ok=True)
     with open(job_filename, 'w') as outfile:
         yaml.dump(conf_dict, outfile, default_flow_style=False)
-        # print(f'outfile: {outfile}')
 
 
     ### save cwl file
@@ -85,7 +84,6 @@ def post_dags_dag_runs(
     ).decode("utf-8")
 
     cwl_json = json.loads(uncompressed)
-    # print(f'cwl_json: {cwl_json}')
 
     # save file
     with open(cwl_filename, 'w') as outfile:
@@ -108,9 +106,9 @@ def post_dags_dag_runs(
 app.add_api(specification="openapi.yaml")
 
 
-if __name__ == '__main__':
-    # run our standalone gevent server
-    app.run(host='127.0.0.1', port=8081)
+# if __name__ == '__main__':
+#     # run our standalone gevent server
+#     app.run(host='127.0.0.1', port=8081)
 
 def run_app():
     app.run(host='127.0.0.1', port=8081)

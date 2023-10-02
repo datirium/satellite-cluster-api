@@ -1,0 +1,87 @@
+{
+    "dag_id": "dag12345",
+    "run_id": "sample12345",
+    "project_id": "project12345",
+    "conf": {
+        "job": {
+            "cytoband": {
+                "class": "File",
+                "location": "file:///home/scidap/scidap/projects/ofaSrRWsSXGicEgQK/iBFwt3dHyir46DrCi/cytoBandIdeo.txt.gz",
+                "fileInformation": {
+                    "originalName": null,
+                    "size": 12122
+                }
+            },
+            "genome_file": {
+                "class": "File",
+                "location": "file:///home/scidap/scidap/projects/ofaSrRWsSXGicEgQK/iBFwt3dHyir46DrCi/hg38.2bit",
+                "fileInformation": {
+                    "originalName": null,
+                    "size": 835393456
+                }
+            },
+            "fasta_ribosomal": {
+                "class": "File",
+                "location": "file:///home/scidap/scidap/projects/ofaSrRWsSXGicEgQK/iBFwt3dHyir46DrCi/ribo.fa",
+                "fileInformation": {
+                    "originalName": null,
+                    "size": 43690
+                }
+            },
+            "annotation_tab": {
+                "class": "File",
+                "location": "file:///home/scidap/scidap/projects/ofaSrRWsSXGicEgQK/iBFwt3dHyir46DrCi/refGene.txt.gz",
+                "fileInformation": {
+                    "originalName": null,
+                    "size": 8668756
+                }
+            },
+            "mitochondrial_annotation_tab": {
+                "class": "File",
+                "location": "file:///home/scidap/scidap/projects/ofaSrRWsSXGicEgQK/iBFwt3dHyir46DrCi/wgEncodeGencodeBasicV28.txt.gz",
+                "fileInformation": {
+                    "originalName": null,
+                    "size": 5103644
+                }
+            },
+            "threads": 4,
+            "limit_genome_generate_ram": 20000000000,
+            "effective_genome_size": "2.74e9",
+            "genome_sa_index_n_bases": 14,
+            "genome_sa_index_n_bases_mitochondrial": 6,
+            "genome_sa_sparse_d": 2,
+            "genome": "hg38",
+            "genome_label": "Homo sapiens (hg38)",
+            "genome_description": "Genome Reference Consortium Human Build 38 (GRCh38/hg38) 2013/12/17",
+            "genome_details": "https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.26/",
+            "chromosome_list": [
+                "chr1",
+                "chr2",
+                "chr3",
+                "chr4",
+                "chr5",
+                "chr6",
+                "chr7",
+                "chr8",
+                "chr9",
+                "chr10",
+                "chr11",
+                "chr12",
+                "chr13",
+                "chr14",
+                "chr15",
+                "chr16",
+                "chr17",
+                "chr18",
+                "chr19",
+                "chr20",
+                "chr21",
+                "chr22",
+                "chrX",
+                "chrY",
+                "chrM"
+            ],
+            "outputs_folder": "/home/scidap/scidap/projects/ofaSrRWsSXGicEgQK/iBFwt3dHyir46DrCi"
+        }
+    }
+}

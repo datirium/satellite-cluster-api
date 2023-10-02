@@ -5,7 +5,7 @@ python@3.8.12 (>=3.6)
 
 requires poetry (```pip install poetry```) and shiv (```pip install shiv```)
 
-## First Time Setup
+## DEVEL: First Time Setup
 
 ```bash
 # setup env
@@ -27,7 +27,7 @@ run ```poetry build``` and save .whl file
 
 ## for single executable
 
-(requires shiv be installed) (swap to python 3.6.8)
+(requires shiv be installed)
 
 run ```shiv -c start-cluster-api -o start-cluster-api .```
 

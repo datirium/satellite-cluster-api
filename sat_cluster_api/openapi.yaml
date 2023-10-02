@@ -86,32 +86,32 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
       parameters:
-        - name: dag_id
-          description: Dag identifier, follow the naming rule "cwlid-commitsha"
-          in: query
-          required: true
-          type: string
-        - name: run_id
-          description: Run identifier
-          in: query
-          required: true
-          type: string
-        - name: conf
-          description: Run configuration (JSON-formatted string)
-          in: query
-          required: false
-          type: string
+        # - name: dag_id
+        #   description: Dag identifier, follow the naming rule "cwlid-commitsha"
+        #   in: query
+        #   required: true
+        #   type: string
+        # - name: run_id
+        #   description: Run identifier
+        #   in: query
+        #   required: true
+        #   type: string
+        # - name: conf
+        #   description: Run configuration (JSON-formatted string)
+        #   in: query
+        #   required: false
+        #   type: string
         - name: workflow_content
           description: base64 encoded gzip compressed workflow content
           in: formData
           required: false
           type: string
         ## TODO: for when sat removes workflow data from query and sends in form (stringified)
-        # - name: workflow_data
-        #   description: 
-        #   in: formData
-        #   required: false
-        #   type: string
+        - name: workflow_data
+          description: json stringified dag/run id and config 
+          in: formData
+          required: true
+          type: string
       tags:
         - CWL-TOIL
 
