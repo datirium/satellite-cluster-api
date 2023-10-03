@@ -1,0 +1,18 @@
+{
+    "dag_id": "dag123",
+    "run_id": "sample123",
+    "proj_id": "proj123",
+    "conf": {
+        "job": {
+            "fastq_file": {
+                "class": "File",
+                "location": "file:///data/barskilab/temporary/workflows-datirium/tests/data/dm3_chr4/main_inputs/fastq/chr4_100_chrM_25_mapped_reads/upstream.fastq.gz",
+                "fileInformation": {
+                    "originalName": null,
+                    "size": 3860
+                }
+            },
+            "outputs_folder": "/scidap/TEST_OUTPUTS"
+        }
+    }
+}
