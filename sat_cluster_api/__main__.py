@@ -18,6 +18,7 @@ import base64
 import gzip
 from ruamel.yaml import YAML
 import sys
+from cwlformat.formatter import cwl_format, stringify_dict
 
 # home_directory = os.path.expanduser( '~' )
 cli_args = sys.argv
@@ -87,8 +88,35 @@ def post_dags_dag_runs(
     ).decode("utf-8")
     cwl_json = json.loads(uncompressed)
     # save file
+    ## json loading causes issues with full width dollar sign
+    # with open(cwl_filename, 'w') as outfile:
+        # loaded_cwl = json.loads(uncompressed)
+        # print(f'type of loaded cwl: {type(loaded_cwl)}')
+        # yaml.dump(loaded_cwl, outfile, default_flow_style=False)#, allow_unicode = True)#, encoding = None)
+
+    ## yaml loading doesn't fix dollar sign issue
+    # with open(cwl_filename, 'w') as outfile:
+    #     yaml_obj = YAML(typ="safe")
+    #     cwl_yaml = yaml_obj.load(uncompressed)
+    #     print(f'cwl yaml: \n{cwl_yaml}')
+    #     # yaml_obj.preserve_quotes = True
+    #     yaml.default_flow_style = False
+    #     # yaml_obj.indent(mapping=4, sequence=6, offset=3)
+    #     # yaml_obj.compact(seq_seq=False, seq_map=False)
+    #     yaml_obj.dump(cwl_yaml, outfile)
+
+
+
+    formatted_cwl_str = stringify_dict(cwl_json)
+    formatted_cwl_str = formatted_cwl_str.replace('＄', '$')
+    # print(f'stringifed cwl: \n{formatted_cwl_str}')
     with open(cwl_filename, 'w') as outfile:
-        yaml.dump(json.loads(uncompressed), outfile, default_flow_style=False, allow_unicode = True)#, encoding = None)
+        outfile.write(formatted_cwl_str)
+
+    # # trying to replace full width dollar sign explicitly doesnt work right
+    # with open(cwl_filename, 'r') as file:
+    #     cwl_str_data = file.read()
+    #     cwl_str_data = cwl_str_data.replace('＄', '$') #'\\uFF04', '$')
 
 
     ### run toil script with params
