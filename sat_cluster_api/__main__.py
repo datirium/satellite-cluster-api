@@ -58,33 +58,34 @@ def post_dags_dag_runs(
     # print(f'run data: {run_data}')
     dag_id = run_data['dag_id']
     run_id = run_data['run_id']
+    project_id = run_data['proj_id']
     conf_dict = run_data['conf'] # json.loads(run_data['conf']) # json.loads(conf)
     # print(f'config dict: {conf_dict}')
     output_folder = conf_dict['job']['outputs_folder']
     # remove outputs_folder from job
     del conf_dict['job']['outputs_folder']
 
+    ## configure paths
+    job_filename = f'{job_dir}/{project_id}/{run_id}/job.yml'
+    cwl_filename = f'{job_dir}/{project_id}/{run_id}/workflow.cwl'
+    temp_out_dir = f'{tmp_output_dir}/{dag_id}/{run_id}'
+    os.makedirs(os.path.dirname(f'{job_dir}/{project_id}/{run_id}/'), exist_ok=True)
+    os.makedirs(os.path.dirname(f'{temp_out_dir}/'), exist_ok=True)
 
     ### save job file
-    job_filename = f'{job_dir}/{run_id}/job.yml'
-    print(f'file name: {job_filename}')
-    os.makedirs(os.path.dirname(f'{job_dir}/{run_id}/'), exist_ok=True)
+    # print(f'file name: {job_filename}')
     with open(job_filename, 'w') as outfile:
         yaml.dump(conf_dict, outfile, default_flow_style=False)
 
 
     ### save cwl file
-    cwl_filename = f'{job_dir}/{run_id}/workflow.cwl'
-    
     # unzip
     uncompressed = gzip.decompress(
         base64.b64decode(
             workflow_content.encode("utf-8") + b'=='       # safety measure to prevent incorrect padding error
         )
     ).decode("utf-8")
-
     cwl_json = json.loads(uncompressed)
-
     # save file
     with open(cwl_filename, 'w') as outfile:
         yaml.dump(json.loads(uncompressed), outfile, default_flow_style=False, allow_unicode = True)#, encoding = None)
@@ -93,7 +94,6 @@ def post_dags_dag_runs(
     ### run toil script with params
     bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id}'
     os.system(f'{bash_command} &')
-
     start_date_str = datetime.now()
     return {
         'dag_id': dag_id or 'unknown',

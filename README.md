@@ -36,10 +36,11 @@ run ```shiv -c start-cluster-api -o start-cluster-api .```
 
 starting api takes 3 args
 1: path to dir where job/cwl files for toil should be saved
+> should be where sample outputs go (/path/to/scidap/projects) (cluster-api will fill in project/sample id for pathing)
 2: path to where toil run script 
 3: path to tmp dir for cwl-toil
 
-> BOTH paths are relative to user home
+> ALL paths are __absolute__
 
 ```bash
 # after running 'poetry install'
