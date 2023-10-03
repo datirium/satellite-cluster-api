@@ -44,18 +44,18 @@ def test_post(cwlLocation: str):
     return f'given str: {cwlLocation}', 200
 
 def post_dags_dag_runs(
-    # dag_id: str, run_id: str, 
-    # conf: str, 
-    workflow_content: str,
-    workflow_data: str
+    # workflow_content: str,
+    # workflow_data: str
+    body: dict
 ): 
     """
     TODO: 
         - handle if stopping dag run
     """
-
+    workflow_content = body['workflow_content']
+    workflow_data = body['workflow_data']
     ## get data from params
-    run_data = json.loads(workflow_data)
+    run_data = workflow_data #json.loads(workflow_data)
     # print(f'run data: {run_data}')
     dag_id = run_data['dag_id']
     run_id = run_data['run_id']

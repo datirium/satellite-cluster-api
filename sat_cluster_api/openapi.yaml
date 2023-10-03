@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
-  title: CWL-Airflow API
-  version: 1.0.1
+  title: CWL-Toil API
+  version: 0.1.1
 basePath: "/api/experimental"
 schemes:
   - https
@@ -62,8 +62,8 @@ paths:
            - removing outdated dags for the same cwlid if no running dag_runs were found for them
         3. Creates new dag_run for dag_id with run_id and optional conf
       operationId: sat_cluster_api.__main__.post_dags_dag_runs
-      consumes:
-         - multipart/form-data
+      # consumes:
+      #    - multipart/form-data
       responses:
         "200":
           description: Reference information about created dag and dag_run.
@@ -86,32 +86,32 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
       parameters:
-        # - name: dag_id
-        #   description: Dag identifier, follow the naming rule "cwlid-commitsha"
-        #   in: query
+        
+        # - name: workflow_content
+        #   description: base64 encoded gzip compressed workflow content
+        #   in: body
         #   required: true
         #   type: string
-        # - name: run_id
-        #   description: Run identifier
-        #   in: query
+        # ## TODO: for when sat removes workflow data from query and sends in form (stringified)
+        # - name: workflow_data
+        #   description: json stringified dag/run id and config 
+        #   in: body
         #   required: true
         #   type: string
-        # - name: conf
-        #   description: Run configuration (JSON-formatted string)
-        #   in: query
-        #   required: false
-        #   type: string
-        - name: workflow_content
-          description: base64 encoded gzip compressed workflow content
-          in: formData
-          required: false
-          type: string
-        ## TODO: for when sat removes workflow data from query and sends in form (stringified)
-        - name: workflow_data
-          description: json stringified dag/run id and config 
-          in: formData
+        - name: body
+          description: request body
+          in: body
           required: true
-          type: string
+          schema: 
+            $ref: "#/definitions/ReqBody"
+
+      # requestBody:
+      #   required: true
+      #   x-body-name: body
+      #   content:
+      #     application/json:
+      #       schema:
+      #         $ref: "#/definitions/ReqBody"
       tags:
         - CWL-TOIL
 
@@ -120,6 +120,18 @@ paths:
 definitions:
   Test:
     type: string
+
+  ReqBody:
+    type: object
+    required: 
+     - workflow_content
+     - workflow_data
+    properties:
+      workflow_content: 
+        type: string
+      workflow_data:
+        type: object
+    description: object with packed workflow_content, and stringified sample config
   
   PostDagRunsResponse:
     type: object
