@@ -67,7 +67,7 @@ def post_dags_dag_runs(
     del conf_dict['job']['outputs_folder']
 
     ## configure paths
-    job_filename = f'{job_dir}/{project_id}/{run_id}/job.yml'
+    job_filename = f'{job_dir}/{project_id}/{run_id}/workflow_job.json'
     cwl_filename = f'{job_dir}/{project_id}/{run_id}/workflow.cwl'
     temp_out_dir = f'{tmp_output_dir}/{dag_id}/{run_id}'
     os.makedirs(os.path.dirname(f'{job_dir}/{project_id}/{run_id}/'), exist_ok=True)
@@ -76,7 +76,7 @@ def post_dags_dag_runs(
     ### save job file
     # print(f'file name: {job_filename}')
     with open(job_filename, 'w') as outfile:
-        yaml.dump(conf_dict['job'], outfile, default_flow_style=False)
+        json.dump(conf_dict['job'], outfile, indent=4) #, default_flow_style=False)
 
 
     ### save cwl file

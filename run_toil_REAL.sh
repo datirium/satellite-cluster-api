@@ -10,6 +10,9 @@ RUN_ID=$6
 MEMORY=${7:-"17179869184"}
 CPU=${8:-"4"}
 
+# remove file formats from cwl
+sed -i '/format: /d' $WORKFLOW
+
 JOBSTORE="${TMPDIR}/jobstore"
 LOGS="${TMPDIR}/logs/${DAG_ID}_${RUN_ID}"
 
@@ -56,4 +59,4 @@ RESULTS=`cat ${OUTDIR}/results.json`
 PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $RESULTS}}"
 echo "Sending workflow execution results from ${OUTDIR}/results.json"
 echo $PAYLOAD
-curl -X POST https://localhost:3069/airflow/results -H "Content-Type: application/json" -d "${PAYLOAD}"
+curl -X POST https://localhost:3070/airflow/results -H "Content-Type: application/json" -d "${PAYLOAD}"
