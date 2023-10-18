@@ -46,7 +46,7 @@ rm $PYTHON_APPIMAGE
 echo "using local copy so no git clone"
 
 echo "going to cluster api dir"
-cd /tmp/python3/cluster_api
+cd /tmp/cluster_api
 # echo "ls: "
 # echo $(ls)
 
@@ -55,7 +55,7 @@ cd /tmp/python3/cluster_api
 
 echo "Install Cluster-API using dependency constraints from requirements.txt"
 # ../python${PYTHON_VERSION}/AppRun -m pip install ".[crypto,postgres]" --constraint ./packaging/constraints/constraints-${SHORT_PYTHON_VERSION}.txt
-../python${PYTHON_VERSION}/AppRun -m pip install -r requirements.txt
+../python3/python${PYTHON_VERSION}/AppRun -m pip install . --contraint requirements.txt
 # ../python${PYTHON_VERSION}/AppRun -m pip install -r pyproject.toml
 # cd ..
 # rm -rf satellite-cluster-api
@@ -89,5 +89,5 @@ echo "Compressing relocatable Python ${PYTHON_VERSION} with installed cluster-ap
 #OUTPUT_NAME="python_${PYTHON_VERSION}_cwl_airflow_${CLUSTER_VERSION}_linux.tar.gz"
 OUTPUT_NAME="python_${PYTHON_VERSION}_toil_api_master_linux.tar.gz"
 tar -zcf $OUTPUT_NAME python3
-mv $OUTPUT_NAME python3/cluster_api
+mv $OUTPUT_NAME cluster_api
 # rm -rf python3

@@ -11,9 +11,9 @@ echo "Packing cluster-api ($CLUSTER_VERSION) for Python ${PYTHON_VERSION} in doc
 echo "Current working directory ${WORKING_DIR}"
 echo "Staring centos:${CENTOS_VERSION} docker container"
 docker  run --rm -it \
-       --volume ${WORKING_DIR}:/tmp/python3/cluster_api \
+       --volume ${WORKING_DIR}:/tmp/cluster_api \
        centos:${CENTOS_VERSION} \
-       /tmp/python3/cluster_api/packaging/pack_linux.sh \
+       /tmp/cluster_api/packaging/pack_linux.sh \
        ${MANYLINUX_VERSION} \
        ${PYTHON_VERSION} \
        ${CLUSTER_VERSION}
