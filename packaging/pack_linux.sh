@@ -43,22 +43,18 @@ rm $PYTHON_APPIMAGE
 # # git checkout $CLUSTER_VERSION
 # echo "ls output: "
 # ls
-echo "using local copy so no git clone"
 
-echo "going to cluster api dir"
-cd /tmp/cluster_api
-# echo "ls: "
-# echo $(ls)
-
-# sleep 10
-
+echo "copying cluster-api to working dir"
+# cd /tmp/cluster_api
+cp /tmp/cluster_api $WORKING_DIR/python3
+cd $WORKING_DIR/python3/cluster_api
 
 echo "Install Cluster-API using dependency constraints from requirements.txt"
 # ../python${PYTHON_VERSION}/AppRun -m pip install ".[crypto,postgres]" --constraint ./packaging/constraints/constraints-${SHORT_PYTHON_VERSION}.txt
-../python3/python${PYTHON_VERSION}/AppRun -m pip install . --contraint requirements.txt
+../python3/python${PYTHON_VERSION}/AppRun -m pip install . --constraint requirements.txt
 # ../python${PYTHON_VERSION}/AppRun -m pip install -r pyproject.toml
-# cd ..
-# rm -rf satellite-cluster-api
+cd ..
+rm -rf cluster_api
 cd $WORKING_DIR/python3
 
 echo "Creating bin_portable folder"
