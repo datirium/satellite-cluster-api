@@ -46,7 +46,7 @@ rm $PYTHON_APPIMAGE
 
 echo "copying cluster-api to working dir"
 # cd /tmp/cluster_api
-cp /tmp/cluster_api $WORKING_DIR/python3
+cp -r /tmp/cluster_api $WORKING_DIR/python3/
 cd $WORKING_DIR/python3/cluster_api
 
 echo "Install Cluster-API using dependency constraints from requirements.txt"
