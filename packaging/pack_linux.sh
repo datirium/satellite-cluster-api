@@ -48,10 +48,13 @@ echo "copying cluster-api to working dir"
 # cd /tmp/cluster_api
 cp -r /tmp/cluster_api $WORKING_DIR/python3/
 cd $WORKING_DIR/python3/cluster_api
+# ls $WORKING_DIR/python3
+# ls $WORKING_DIR/python3/cluster_api
+# sleep 5
 
 echo "Install Cluster-API using dependency constraints from requirements.txt"
 # ../python${PYTHON_VERSION}/AppRun -m pip install ".[crypto,postgres]" --constraint ./packaging/constraints/constraints-${SHORT_PYTHON_VERSION}.txt
-../python3/python${PYTHON_VERSION}/AppRun -m pip install . --constraint requirements.txt
+../python${PYTHON_VERSION}/AppRun -m pip install . #--constraint requirements.txt
 # ../python${PYTHON_VERSION}/AppRun -m pip install -r pyproject.toml
 cd ..
 rm -rf cluster_api
