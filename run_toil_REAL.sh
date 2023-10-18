@@ -8,8 +8,9 @@ OUTDIR=$3
 TMPDIR=$4 # must be accessible by all nodes /data/barskilab/michael/toil_temp
 DAG_ID=$5
 RUN_ID=$6
-MEMORY=${7:-"68719476736"}
-CPU=${8:-"8"}
+TOIL_ENV_FILE=$7
+MEMORY=${8:-"68719476736"}
+CPU=${9:-"8"}
 
 
 # remove file formats from cwl
@@ -39,7 +40,7 @@ trap cleanup SIGINT SIGTERM SIGKILL ERR
      -e "${OUTDIR}/stderr.txt" << EOL
 module purge
 module load nodejs anaconda3 singularity/3.7.0
-source /data/barskilab/temporary/myenv/bin/activate
+source $TOIL_ENV_FILE
 mkdir -p ${OUTDIR} ${TMPDIR} ${JOBSTORE} ${LOGS}
 export TMPDIR="${TMPDIR}"
 export TOIL_LSF_ARGS="-W 48:00"

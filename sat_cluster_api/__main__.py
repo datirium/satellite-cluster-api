@@ -6,6 +6,7 @@ The satellite cluster api expects 3 arguments when run
     (default = '/home/scidap/scripts')
 3: the directory (absolute_path) where temporary run data is stored
     (default = '/data/barskilab/scidap_data')
+4: the absolute path to the python virtual env file sourced by the run_toil script
 """
 
 import connexion
@@ -27,7 +28,7 @@ cli_args = sys.argv
 job_dir = cli_args[1] if len(cli_args) > 1 else '/home/scidap/tmp_job_dir'
 script_dir = cli_args[2] if len(cli_args) > 2 else '/home/scidap/scripts'
 tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/data/barskilab/scidap_data'
-
+toil_env_file = cli_args[4] if len(cli_args) > 4 else '/data/barskilab/temporary/myenv/bin/activate'
 
 app = connexion.FlaskApp(
     __name__
@@ -87,40 +88,14 @@ def post_dags_dag_runs(
         )
     ).decode("utf-8")
     cwl_json = json.loads(uncompressed)
-    # save file
-    ## json loading causes issues with full width dollar sign
-    # with open(cwl_filename, 'w') as outfile:
-        # loaded_cwl = json.loads(uncompressed)
-        # print(f'type of loaded cwl: {type(loaded_cwl)}')
-        # yaml.dump(loaded_cwl, outfile, default_flow_style=False)#, allow_unicode = True)#, encoding = None)
-
-    ## yaml loading doesn't fix dollar sign issue
-    # with open(cwl_filename, 'w') as outfile:
-    #     yaml_obj = YAML(typ="safe")
-    #     cwl_yaml = yaml_obj.load(uncompressed)
-    #     print(f'cwl yaml: \n{cwl_yaml}')
-    #     # yaml_obj.preserve_quotes = True
-    #     yaml.default_flow_style = False
-    #     # yaml_obj.indent(mapping=4, sequence=6, offset=3)
-    #     # yaml_obj.compact(seq_seq=False, seq_map=False)
-    #     yaml_obj.dump(cwl_yaml, outfile)
-
-
-
     formatted_cwl_str = stringify_dict(cwl_json)
     formatted_cwl_str = formatted_cwl_str.replace('＄', '$')
     # print(f'stringifed cwl: \n{formatted_cwl_str}')
     with open(cwl_filename, 'w') as outfile:
         outfile.write(formatted_cwl_str)
-
-    # # trying to replace full width dollar sign explicitly doesnt work right
-    # with open(cwl_filename, 'r') as file:
-    #     cwl_str_data = file.read()
-    #     cwl_str_data = cwl_str_data.replace('＄', '$') #'\\uFF04', '$')
-
-
+    
     ### run toil script with params
-    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id}'
+    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file}'
     os.system(f'{bash_command} &')
     start_date_str = datetime.now()
     return {
