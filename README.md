@@ -25,12 +25,22 @@ poetry install
 
 run ```poetry build``` and save .whl file
 
-## for single executable
+### for single executable
 
 (requires shiv be installed)
 
 run ```shiv -c start-cluster-api -o start-cluster-api .```
 
+## Packaging like cwl-airflow
+generate requirements.txt based on python version desired
+```bash
+conda create -n env_py_vM.m.p python=M.m.p
+conda activate env_py_vM.m.p
+pip install pip-tools
+python -m piptools compile \
+    -o requirements.txt \
+    pyproject.toml
+```
 
 ## local runs
 
