@@ -7,6 +7,7 @@ The satellite cluster api expects 3 arguments when run
 3: the directory (absolute_path) where temporary run data is stored
     (default = '/data/barskilab/scidap_data')
 4: the absolute path to the python virtual env file sourced by the run_toil script
+    (default = '/data/barskilab/temporary/myenv/bin/activate')
 """
 
 import connexion
@@ -23,11 +24,10 @@ from cwlformat.formatter import cwl_format, stringify_dict
 
 # home_directory = os.path.expanduser( '~' )
 cli_args = sys.argv
-# for i, arg in enumerate(cli_args):
-#     print(f'Arg #{i}: {arg}')
-job_dir = cli_args[1] if len(cli_args) > 1 else '/home/scidap/tmp_job_dir'
-script_dir = cli_args[2] if len(cli_args) > 2 else '/home/scidap/scripts'
-tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/data/barskilab/scidap_data'
+job_dir = cli_args[1] if len(cli_args) > 1 else '/home/scidap/scidap/projects'
+script_dir = cli_args[2] if len(cli_args) > 2 else '/home/scidap/satellite/satellite/bin'
+tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/mnt/cache/tmp_toil_dir'
+# make better default location
 toil_env_file = cli_args[4] if len(cli_args) > 4 else '/data/barskilab/temporary/myenv/bin/activate'
 
 app = connexion.FlaskApp(

@@ -43,6 +43,7 @@ module load nodejs anaconda3 singularity/3.7.0
 source $TOIL_ENV_FILE
 mkdir -p ${OUTDIR} ${TMPDIR} ${JOBSTORE} ${LOGS}
 export TMPDIR="${TMPDIR}"
+export SINGULARITY_TMPDIR=/scratch/kot4or/temporary
 export TOIL_LSF_ARGS="-W 48:00"
 toil-cwl-runner \
 --logDebug \
