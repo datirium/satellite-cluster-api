@@ -18,9 +18,9 @@ from datetime import datetime
 import base64
 import gzip
 import sys
-from cwlformat.formatter import stringify_dict #, cwl_format
+# from cwlformat.formatter import stringify_dict #, cwl_format
 # import yaml
-# from ruamel.yaml import YAML
+from ruamel.yaml import YAML
 
 # home_directory = os.path.expanduser( '~' )
 cli_args = sys.argv
@@ -82,17 +82,63 @@ def post_dags_dag_runs(
 
     ### save cwl file
     # unzip
+
     uncompressed = gzip.decompress(
         base64.b64decode(
             workflow_content.encode("utf-8") + b'=='       # safety measure to prevent incorrect padding error
         )
     ).decode("utf-8")
-    cwl_json = json.loads(uncompressed)
-    formatted_cwl_str = stringify_dict(cwl_json)
-    formatted_cwl_str = formatted_cwl_str.replace('＄', '$')
-    # print(f'stringifed cwl: \n{formatted_cwl_str}')
+    # print(f'uncompressed: {uncompressed}')
+    print(f'uncompressed type: {type(uncompressed)}')
+
+    ## (ATTEMPT-2)
+    uncompressed = uncompressed.replace('＄', '$')
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    yaml.indent(mapping=4, sequence=6, offset=3)
+    # data = yaml.load(uncompressed)
+    # if data == uncompressed:
+    #     raise ValueError
+    data = json.loads(uncompressed)
+    print(f'loaded yaml type: {type(data)}')
     with open(cwl_filename, 'w') as outfile:
-        outfile.write(formatted_cwl_str)
+        yaml.dump(data, outfile)
+        # yaml.dump(uncompressed, outfile)
+
+    ## (ATTEMPT-1)
+    # yaml = YAML()
+    # yaml.preserve_quotes = True
+    # data = yaml.load(uncompressed)
+    # if data == uncompressed:
+    #     raise ValueError
+    # print(f'loaded yaml type: {type(data)}')
+    # formatted_cwl_str = str(data) 
+    # formatted_cwl_str = formatted_cwl_str.replace('＄', '$')
+    # print(f'stringified yaml type: {type(formatted_cwl_str)}')
+    # with open(cwl_filename, 'w') as outfile:
+    #     yaml.dump(formatted_cwl_str, outfile)
+
+    ## (ORIGINAL)
+    # cwl_json = json.loads(uncompressed)
+    # # print(f'cwl json: {cwl_json}')
+    # print(f'type of cwl_json: {type(cwl_json)}')
+    # formatted_cwl_str = stringify_dict(cwl_json)
+    # formatted_cwl_str = formatted_cwl_str.replace('＄', '$')
+    # # print(f'stringifed cwl: \n{formatted_cwl_str}')
+    # with open(cwl_filename, 'w') as outfile:
+    #     outfile.write(formatted_cwl_str)
+    
+    ## (ATTEMPT-X) attempting to not use stringify_dict
+    # workflow = get_compressed(
+    #     convert_to_workflow(                                # to make sure we are not saving CommandLineTool instead of a Workflow
+    #         command_line_tool=fast_cwl_load(                # using fast_cwl_load is safe here because we deal with the content of a file
+    #             connexion.request.json["workflow_content"]
+    #         )
+    #     )
+    # )
+    # with open(cwl_filename, 'w') as outfile:
+    #     outfile.write(formatted_cwl_str)
+    
     
     ### run toil script with params
     bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file}'

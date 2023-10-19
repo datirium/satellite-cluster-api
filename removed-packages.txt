@@ -1,1 +1,2 @@
 ruamel-yaml = "^0.17.32"
+cwlformat = "^2022.2.18"
