@@ -91,57 +91,17 @@ def post_dags_dag_runs(
             workflow_content.encode("utf-8") + b'=='       # safety measure to prevent incorrect padding error
         )
     ).decode("utf-8")
-    # print(f'uncompressed: {uncompressed}')
-    print(f'uncompressed type: {type(uncompressed)}')
 
-    ## (ATTEMPT-2)
+    # fix issue with full width dollar sign and write workflow to file
     uncompressed = uncompressed.replace('＄', '$')
     yaml = YAML()
     yaml.preserve_quotes = True
     yaml.indent(mapping=4, sequence=6, offset=3)
-    # data = yaml.load(uncompressed)
-    # if data == uncompressed:
-    #     raise ValueError
     data = json.loads(uncompressed)
-    print(f'loaded yaml type: {type(data)}')
     with open(cwl_filename, 'w') as outfile:
         yaml.dump(data, outfile)
         # yaml.dump(uncompressed, outfile)
 
-    ## (ATTEMPT-1)
-    # yaml = YAML()
-    # yaml.preserve_quotes = True
-    # data = yaml.load(uncompressed)
-    # if data == uncompressed:
-    #     raise ValueError
-    # print(f'loaded yaml type: {type(data)}')
-    # formatted_cwl_str = str(data) 
-    # formatted_cwl_str = formatted_cwl_str.replace('＄', '$')
-    # print(f'stringified yaml type: {type(formatted_cwl_str)}')
-    # with open(cwl_filename, 'w') as outfile:
-    #     yaml.dump(formatted_cwl_str, outfile)
-
-    ## (ORIGINAL)
-    # cwl_json = json.loads(uncompressed)
-    # # print(f'cwl json: {cwl_json}')
-    # print(f'type of cwl_json: {type(cwl_json)}')
-    # formatted_cwl_str = stringify_dict(cwl_json)
-    # formatted_cwl_str = formatted_cwl_str.replace('＄', '$')
-    # # print(f'stringifed cwl: \n{formatted_cwl_str}')
-    # with open(cwl_filename, 'w') as outfile:
-    #     outfile.write(formatted_cwl_str)
-    
-    ## (ATTEMPT-X) attempting to not use stringify_dict
-    # workflow = get_compressed(
-    #     convert_to_workflow(                                # to make sure we are not saving CommandLineTool instead of a Workflow
-    #         command_line_tool=fast_cwl_load(                # using fast_cwl_load is safe here because we deal with the content of a file
-    #             connexion.request.json["workflow_content"]
-    #         )
-    #     )
-    # )
-    # with open(cwl_filename, 'w') as outfile:
-    #     outfile.write(formatted_cwl_str)
-    
     
     ### run toil script with params
     bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {singularity_tmp_dir}'
@@ -156,11 +116,6 @@ def post_dags_dag_runs(
     }
 
 app.add_api(specification="openapi.yaml")
-
-
-# if __name__ == '__main__':
-#     # run our standalone gevent server
-#     app.run(host='127.0.0.1', port=8081)
 
 def run_app():
     app.run(host='127.0.0.1', port=8081)
