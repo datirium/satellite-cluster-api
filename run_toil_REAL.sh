@@ -9,8 +9,9 @@ TMPDIR=$4 # must be accessible by all nodes /data/barskilab/michael/toil_temp
 DAG_ID=$5
 RUN_ID=$6
 TOIL_ENV_FILE=$7
-MEMORY=${8:-"68719476736"}
-CPU=${9:-"8"}
+SINGULARITY_TMP_DIR=$8
+MEMORY=${9:-"68719476736"}
+CPU=${10:-"8"}
 
 
 # remove file formats from cwl
@@ -43,7 +44,7 @@ module load nodejs anaconda3 singularity/3.7.0
 source $TOIL_ENV_FILE
 mkdir -p ${OUTDIR} ${TMPDIR} ${JOBSTORE} ${LOGS}
 export TMPDIR="${TMPDIR}"
-export SINGULARITY_TMPDIR=/scratch/kot4or/temporary
+export SINGULARITY_TMPDIR=$SINGULARITY_TMP_DIR
 export TOIL_LSF_ARGS="-W 48:00"
 toil-cwl-runner \
 --logDebug \

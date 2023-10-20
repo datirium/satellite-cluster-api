@@ -1,13 +1,15 @@
 """
 The satellite cluster api expects 3 arguments when run
-1: the directory (absolute_path) where job/cwl files should be stored
-    (default = '/home/scidap/tmp_job_dir') 
-2: the directory (absolute_path) where the run_toil script can be found
-    (default = '/home/scidap/scripts')
-3: the directory (absolute_path) where temporary run data is stored
-    (default = '/data/barskilab/scidap_data')
-4: the absolute path to the python virtual env file sourced by the run_toil script
+1: Directory (absolute_path) where job/cwl files should be stored (will have folders for dag/run ID appended for each POST)
+    (default = '/home/scidap/scidap/projects') 
+2: Directory (absolute_path) where the run_toil script can be found
+    (default = '/home/scidap/satellite/satellite/bin')
+3: Directory (absolute_path) where temporary run data is stored
+    (default = '/mnt/cache/TOIL_TMP_DIR')
+4: File (absolute path) to the python virtual env file sourced by the run_toil script
     (default = '/data/barskilab/temporary/myenv/bin/activate')
+5: Directory (absolute path) for singularity to use (should be shared among all cluster nodes)
+    (default = '/mnt/cache/SINGULATIRY_TMP_DIR)
 """
 
 import connexion
@@ -26,9 +28,10 @@ from ruamel.yaml import YAML
 cli_args = sys.argv
 job_dir = cli_args[1] if len(cli_args) > 1 else '/home/scidap/scidap/projects'
 script_dir = cli_args[2] if len(cli_args) > 2 else '/home/scidap/satellite/satellite/bin'
-tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/mnt/cache/tmp_toil_dir'
+tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/mnt/cache/TOIL_TMP_DIR'
 # make better default location
 toil_env_file = cli_args[4] if len(cli_args) > 4 else '/data/barskilab/temporary/myenv/bin/activate'
+singularity_tmp_dir = cli_args[5] if len(cli_args) > 5 else '/mnt/cache/SINGULARITY_TMP_DIR'
 
 app = connexion.FlaskApp(
     __name__
@@ -141,7 +144,7 @@ def post_dags_dag_runs(
     
     
     ### run toil script with params
-    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file}'
+    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {singularity_tmp_dir}'
     os.system(f'{bash_command} &')
     start_date_str = datetime.now()
     return {
