@@ -10,6 +10,8 @@ The satellite cluster api expects 3 arguments when run
     (default = '/data/barskilab/temporary/myenv/bin/activate')
 5: Directory (absolute path) for singularity to use (should be shared among all cluster nodes)
     (default = '/mnt/cache/SINGULATIRY_TMP_DIR)
+6: Port for njs-client
+    (default = 3069)
 """
 
 import connexion
@@ -32,6 +34,7 @@ tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/mnt/cache/TOIL_TMP_DIR'
 # make better default location
 toil_env_file = cli_args[4] if len(cli_args) > 4 else '/data/barskilab/temporary/myenv/bin/activate'
 singularity_tmp_dir = cli_args[5] if len(cli_args) > 5 else '/mnt/cache/SINGULARITY_TMP_DIR'
+njs_port = cli_args[6] if len(cli_args) > 6 else 3069
 
 app = connexion.FlaskApp(
     __name__
@@ -72,7 +75,7 @@ def post_dags_dag_runs(
 
     ## configure paths
     job_filename = f'{job_dir}/{project_id}/{run_id}/workflow_job.json'
-    cwl_filename = f'{job_dir}/{project_id}/{run_id}/workflow.cwl'
+    cwl_filename = f'{job_dir}/{project_id}/{run_id}/workflow.json'
     temp_out_dir = f'{tmp_output_dir}/{dag_id}/{run_id}'
     os.makedirs(os.path.dirname(f'{job_dir}/{project_id}/{run_id}/'), exist_ok=True)
     # os.makedirs(os.path.dirname(f'{temp_out_dir}/'), exist_ok=True)
@@ -95,16 +98,18 @@ def post_dags_dag_runs(
     # fix issue with full width dollar sign and write workflow to file
     uncompressed = uncompressed.replace('＄', '$')
     yaml = YAML()
-    yaml.preserve_quotes = True
+    # yaml.preserve_quotes = True
     yaml.indent(mapping=4, sequence=6, offset=3)
-    data = json.loads(uncompressed)
+    # data = json.loads(uncompressed)
+    # print(f'data json loaded steps: \n\n {data["steps"]["extract_fastq"]["run"]["inputs"]["script"]["default"]}')
+    data = yaml.load(uncompressed)
     with open(cwl_filename, 'w') as outfile:
-        yaml.dump(data, outfile)
-        # yaml.dump(uncompressed, outfile)
+        json.dump(data, outfile, indent=4)
+        # yaml.dump(data, outfile)
 
     
     ### run toil script with params
-    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {singularity_tmp_dir}'
+    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {singularity_tmp_dir} {njs_port}'
     os.system(f'{bash_command} &')
     start_date_str = datetime.now()
     return {
