@@ -10,10 +10,10 @@ DAG_ID=$5
 RUN_ID=$6
 TOIL_ENV_FILE=$7
 SINGULARITY_TMP_DIR=$8
-CWL_SINGULARITY_CACHE=$9         # must be accessible by all nodes /data/barskilab/scidap_data/singularity_images
-NJS_CLIENT_PORT=${10:-"3069"}
-MEMORY=${11:-"68719476736"}
-CPU=${12:-"8"}
+NJS_CLIENT_PORT=${9:-"3069"}
+MEMORY=${10:-"68719476736"}
+CPU=${11:-"8"}
+CWL_SINGULARITY_CACHE=${12:-"${SINGULARITY_TMP_DIR}"}
 
 
 # remove file formats from cwl
