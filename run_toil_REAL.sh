@@ -11,15 +11,16 @@ RUN_ID=$6
 TOIL_ENV_FILE=$7
 SINGULARITY_TMP_DIR=$8
 NJS_CLIENT_PORT=${9:-"3069"}
-MEMORY=${10:-"68719476736"}
-CPU=${11:-"8"}
+CWL_SINGULARITY_CACHE=${10:-"${SINGULARITY_TMP_DIR}"}
+MEMORY=${11:-"68719476736"}
+CPU=${12:-"8"}
 
 
 # remove file formats from cwl
 sed -i '/"format": /d' $WORKFLOW
 
-JOBSTORE="${TMPDIR}/jobstore"
-LOGS="${TMPDIR}/logs/${DAG_ID}_${RUN_ID}"
+JOBSTORE="${TMPDIR}/${DAG_ID}_${RUN_ID}/jobstore"
+LOGS="${TMPDIR}/${DAG_ID}_${RUN_ID}/logs"
 
 
 cleanup()
@@ -34,18 +35,20 @@ cleanup()
 trap cleanup SIGINT SIGTERM SIGKILL ERR
 
 /cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -J "${DAG_ID}_${RUN_ID}" \
-     -M 16000 \
+     -M 64000 \
      -W 48:00 \
      -n 4 \
-     -R "rusage[mem=16000] span[hosts=1]" \
+     -R "rusage[mem=64000] span[hosts=1]" \
      -o "${OUTDIR}/stdout.txt" \
      -e "${OUTDIR}/stderr.txt" << EOL
 module purge
 module load nodejs anaconda3 singularity/3.7.0
 source $TOIL_ENV_FILE
-mkdir -p ${OUTDIR} ${TMPDIR} ${JOBSTORE} ${LOGS}
-export TMPDIR="${TMPDIR}"
+mkdir -p ${OUTDIR} ${LOGS}
+rm -rf ${JOBSTORE}
+export TMPDIR="${TMPDIR}/${DAG_ID}_${RUN_ID}"
 export SINGULARITY_TMPDIR=$SINGULARITY_TMP_DIR
+export CWL_SINGULARITY_CACHE=$CWL_SINGULARITY_CACHE
 export TOIL_LSF_ARGS="-W 48:00"
 toil-cwl-runner \
 --logDebug \
@@ -57,7 +60,7 @@ toil-cwl-runner \
 --disableCaching \
 --defaultMemory ${MEMORY} \
 --defaultCores ${CPU} \
---jobStore "${JOBSTORE}/${DAG_ID}_${RUN_ID}" \
+--jobStore "${JOBSTORE}" \
 --writeLogs ${LOGS} \
 --outdir ${OUTDIR} ${WORKFLOW} ${JOB} > ${OUTDIR}/results.json
 EOL
@@ -76,3 +79,15 @@ PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"r
 echo "Sending workflow execution results from ${OUTDIR}/results.json"
 echo $PAYLOAD
 curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d "${PAYLOAD}"
+
+echo "Cleaning temporary directory ${TMPDIR}/${DAG_ID}_${RUN_ID}"
+/cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -J "${DAG_ID}_${RUN_ID}_cleanup" \
+     -M 16000 \
+     -W 8:00 \
+     -n 2 \
+     -R "rusage[mem=16000] span[hosts=1]" \
+     -o "${OUTDIR}/cleanup_stdout.txt" \
+     -e "${OUTDIR}/cleanup_stderr.txt" << EOL
+rm -rf "${TMPDIR}/${DAG_ID}_${RUN_ID}"
+EOL
+/cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bwait -w "ended(${DAG_ID}_${RUN_ID}_cleanup)"
