@@ -17,7 +17,10 @@ CPU=${12:-"8"}
 
 
 # remove file formats from cwl
+sed '/\"format\": [/,/]/ d; /^$/d' $WORKFLOW
 sed -i '/"format": /d' $WORKFLOW
+#fix absolute paths on some input locations
+sed -i 's@"location": "file:///scidap@"location": "file:///data/barskilab/scidap_server@g' $JOB
 
 JOBSTORE="${TMPDIR}/${DAG_ID}_${RUN_ID}/jobstore"
 LOGS="${TMPDIR}/${DAG_ID}_${RUN_ID}/logs"
