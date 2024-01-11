@@ -21,6 +21,7 @@ sed -i '/\"format\": \[/,/]/ d; /^$/d' $WORKFLOW
 sed -i '/"format": /d' $WORKFLOW
 sed -i 's@"location": "file:///scidap@"location": "file:///data/barskilab/scidap_server@g' $JOB
 
+
 JOBSTORE="${TMPDIR}/${DAG_ID}_${RUN_ID}/jobstore"
 LOGS="${TMPDIR}/${DAG_ID}_${RUN_ID}/logs"
 
@@ -36,7 +37,7 @@ cleanup()
 }
 trap cleanup SIGINT SIGTERM SIGKILL ERR
 
-/cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -J "${DAG_ID}_${RUN_ID}" \
+bsub -J "${DAG_ID}_${RUN_ID}" \
      -M 64000 \
      -W 48:00 \
      -n 4 \
@@ -64,28 +65,28 @@ toil-cwl-runner \
 --defaultCores ${CPU} \
 --jobStore "${JOBSTORE}" \
 --writeLogs ${LOGS} \
---outdir ${OUTDIR} ${WORKFLOW} ${JOB} > ${OUTDIR}/results.json
+--outdir ${OUTDIR} ${WORKFLOW} ${JOB} | jq 'walk(if type == "object" then with_entries(select(.key | test("listing") | not)) else . end)' > ${OUTDIR}/results.json
 EOL
 
 # jq 'walk(if type == "object" then with_entries(select(.key | test("listing") | not)) else . end)'
 
 
-/cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bwait -w "started(${DAG_ID}_${RUN_ID})"
+bwait -w "started(${DAG_ID}_${RUN_ID})"
 echo "Sending workflow execution progress"
 PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"state\": \"Sent to Cluster\", \"progress\": 8, \"error\": \"\", \"statistics\": \"\", \"logs\": \"\"}}"
 echo $PAYLOAD
 curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/progress -H "Content-Type: application/json" -d "${PAYLOAD}"
 
-/cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bwait -w "done(${DAG_ID}_${RUN_ID})"      # won't be caught by trap if job finished successfully
+bwait -w "done(${DAG_ID}_${RUN_ID})"      # won't be caught by trap if job finished successfully
 
 RESULTS=`cat ${OUTDIR}/results.json`
 PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $RESULTS}}"
-echo "Sending workflow execution results from ${OUTDIR}/results.json"
-echo $PAYLOAD
-curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d "${PAYLOAD}"
+echo $PAYLOAD > "${OUTDIR}/payload.json"
+echo "Sending workflow execution results from ${OUTDIR}/payload.json"
+curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d @"${OUTDIR}/payload.json"
 
 echo "Cleaning temporary directory ${TMPDIR}/${DAG_ID}_${RUN_ID}"
-/cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -J "${DAG_ID}_${RUN_ID}_cleanup" \
+bsub -J "${DAG_ID}_${RUN_ID}_cleanup" \
      -M 16000 \
      -W 8:00 \
      -n 2 \
@@ -94,4 +95,4 @@ echo "Cleaning temporary directory ${TMPDIR}/${DAG_ID}_${RUN_ID}"
      -e "${OUTDIR}/cleanup_stderr.txt" << EOL
 rm -rf "${TMPDIR}/${DAG_ID}_${RUN_ID}"
 EOL
-/cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bwait -w "ended(${DAG_ID}_${RUN_ID}_cleanup)"
+bwait -w "ended(${DAG_ID}_${RUN_ID}_cleanup)"
