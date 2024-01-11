@@ -1,4 +1,3 @@
-
 #!/bin/bash
 set -e
 
@@ -17,9 +16,9 @@ CPU=${12:-"8"}
 
 
 # remove file formats from cwl
-sed '/\"format\": [/,/]/ d; /^$/d' $WORKFLOW
+# sed -i '/"format": /d' $WORKFLOW
+sed -i '/\"format\": \[/,/]/ d; /^$/d' $WORKFLOW
 sed -i '/"format": /d' $WORKFLOW
-#fix absolute paths on some input locations
 sed -i 's@"location": "file:///scidap@"location": "file:///data/barskilab/scidap_server@g' $JOB
 
 JOBSTORE="${TMPDIR}/${DAG_ID}_${RUN_ID}/jobstore"
@@ -45,7 +44,7 @@ trap cleanup SIGINT SIGTERM SIGKILL ERR
      -o "${OUTDIR}/stdout.txt" \
      -e "${OUTDIR}/stderr.txt" << EOL
 module purge
-module load nodejs anaconda3 singularity/3.7.0
+module load nodejs jq anaconda3 singularity/3.7.0
 source $TOIL_ENV_FILE
 mkdir -p ${OUTDIR} ${LOGS}
 rm -rf ${JOBSTORE}
@@ -67,6 +66,8 @@ toil-cwl-runner \
 --writeLogs ${LOGS} \
 --outdir ${OUTDIR} ${WORKFLOW} ${JOB} > ${OUTDIR}/results.json
 EOL
+
+# jq 'walk(if type == "object" then with_entries(select(.key | test("listing") | not)) else . end)'
 
 
 /cm/shared/apps/lsf10/10.1/linux3.10-glibc2.17-x86_64/bin/bwait -w "started(${DAG_ID}_${RUN_ID})"
