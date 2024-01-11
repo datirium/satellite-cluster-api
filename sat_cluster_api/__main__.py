@@ -35,7 +35,7 @@ job_dir = cli_args[1] if len(cli_args) > 1 else '/home/scidap/scidap/projects'
 script_dir = cli_args[2] if len(cli_args) > 2 else '/home/scidap/satellite/satellite/bin'
 tmp_output_dir = cli_args[3] if len(cli_args) > 3 else '/mnt/cache/TOIL_TMP_DIR'
 # make better default location
-toil_env_file = cli_args[4] if len(cli_args) > 4 else '/data/barskilab/temporary/myenv/bin/activate'
+toil_env_file = cli_args[4] if len(cli_args) > 4 else '/home/scidap/scidap/toilEnvFile'
 singularity_tmp_dir = cli_args[5] if len(cli_args) > 5 else '/mnt/cache/SINGULARITY_TMP_DIR'
 njs_port = cli_args[6] if len(cli_args) > 6 else 3069
 cwl_singularity_dir = cli_args[7] if len(cli_args) > 6 else '/mnt/cache/SINGULARITY_TMP_DIR'
