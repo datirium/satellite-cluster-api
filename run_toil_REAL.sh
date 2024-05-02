@@ -8,11 +8,12 @@ TMPDIR=$4 # must be accessible by all nodes /data/barskilab/michael/toil_temp
 DAG_ID=$5
 RUN_ID=$6
 TOIL_ENV_FILE=$7
-SINGULARITY_TMP_DIR=$8
+BATCH_SYSTEM=$8
 NJS_CLIENT_PORT=${9:-"3069"}
-CWL_SINGULARITY_CACHE=${10:-"${SINGULARITY_TMP_DIR}"}
-MEMORY=${11:-"68719476736"}
-CPU=${12:-"8"}
+SINGULARITY_TMP_DIR=$10
+CWL_SINGULARITY_CACHE=${11:-"${SINGULARITY_TMP_DIR}"}
+MEMORY=${12:-"68719476736"}
+CPU=${13:-"8"}
 
 
 # remove file formats from cwl
