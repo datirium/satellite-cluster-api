@@ -50,7 +50,7 @@ njs_port = cli_args[6] if num_cli_args > 6 else 3069
 singularity_tmp_dir = cli_args[7] if num_cli_args > 7 else '/mnt/cache/SINGULARITY_TMP_DIR'
 cwl_singularity_dir = cli_args[8] if num_cli_args > 8 else '/mnt/cache/SINGULARITY_TMP_DIR'
 num_cpu = cli_args[9] if num_cli_args > 9 else '8'
-
+max_mem = cli_args[10] if num_cli_args > 10 else '68719476736'
 
 app = connexion.FlaskApp(
     __name__
@@ -126,7 +126,7 @@ def post_dags_dag_runs(
 
 
     ### run toil script with params
-    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {batch_system} {njs_port} {singularity_tmp_dir} {cwl_singularity_dir} {num_cpu}'
+    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {batch_system} {njs_port} {singularity_tmp_dir} {cwl_singularity_dir} {num_cpu} {max_mem}'
     os.system(f'{bash_command} &')
     start_date_str = datetime.now()
     
