@@ -20,8 +20,11 @@ $NJS_CLIENT_PORT $SINGULARITY_TMP_DIR $CWL_SINGULARITY_DIR
     8 (CWL_SINGULARITY_DIR): Directory (absolute path) for singularity to use for cwls (should be shared among all cluster nodes)
         (default = '/mnt/cache/SINGULARITY_TMP_DIR')
         (OPTIONAL if batch_system=single_machine)
-    9 (CPUS): number of cpus to utilize???
+    9 (SYSTEM_ROOT): where satellite is installed at, and where the "projects" folder (that holds all data) is held
+    10 (CPUS): number of cpus to utilize???
         (default = 8)
+    11 (MAX_MEM): maximum memory given to any individual toil run
+        (default = 68719476736)
 """
 
 import connexion
@@ -49,8 +52,9 @@ batch_system = cli_args[5] if num_cli_args > 5 else 'single_machine'
 njs_port = cli_args[6] if num_cli_args > 6 else 3069
 singularity_tmp_dir = cli_args[7] if num_cli_args > 7 else '/mnt/cache/SINGULARITY_TMP_DIR'
 cwl_singularity_dir = cli_args[8] if num_cli_args > 8 else '/mnt/cache/SINGULARITY_TMP_DIR'
-num_cpu = cli_args[9] if num_cli_args > 9 else '8'
-max_mem = cli_args[10] if num_cli_args > 10 else '68719476736'
+system_root = cli_args[9] if num_cli_args > 9 else '/home/scidap/'
+num_cpu = cli_args[10] if num_cli_args > 10 else '8'
+max_mem = cli_args[11] if num_cli_args > 11 else '68719476736'
 
 app = connexion.FlaskApp(
     __name__
@@ -126,7 +130,7 @@ def post_dags_dag_runs(
 
 
     ### run toil script with params
-    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {batch_system} {njs_port} {singularity_tmp_dir} {cwl_singularity_dir} {num_cpu} {max_mem}'
+    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {batch_system} {njs_port} {singularity_tmp_dir} {cwl_singularity_dir} {system_root} {num_cpu} {max_mem}'
     os.system(f'{bash_command} &')
     start_date_str = datetime.now()
     
