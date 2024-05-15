@@ -129,15 +129,16 @@ def post_dags_dag_runs(
         # yaml.dump(data, outfile)
 
 
-    ### run toil script with params
-    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {batch_system} {njs_port} {singularity_tmp_dir} {cwl_singularity_dir} {system_root} {num_cpu} {max_mem}'
+    ### run toil script with params (include data for progress script)
+    totalSteps = len(data["steps"].keys())
+    bash_command = f'bash {script_dir}/run_toil.sh {cwl_filename} {job_filename} {output_folder} {tmp_output_dir} {dag_id} {run_id} {toil_env_file} {batch_system} {njs_port} {singularity_tmp_dir} {cwl_singularity_dir} {system_root} {num_cpu} {max_mem} {totalSteps} {script_dir}'
     os.system(f'{bash_command} &')
     start_date_str = datetime.now()
     
-    # create cronjob to watch stats until all steps done
-    totalSteps = len(data["steps"].keys())
-    progress_command = f'bash {script_dir}/toil_progress.sh {tmp_output_dir} {dag_id} {run_id} {totalSteps} {njs_port}'
-    os.system(f'{progress_command} &')
+    # # create cronjob to watch stats until all steps done
+    # totalSteps = len(data["steps"].keys())
+    # progress_command = f'bash {script_dir}/toil_progress.sh {tmp_output_dir} {dag_id} {run_id} {totalSteps} {njs_port}'
+    # os.system(f'{progress_command} &')
 
     return {
         'dag_id': dag_id or 'unknown',
