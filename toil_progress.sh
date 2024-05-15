@@ -1,4 +1,7 @@
 #!/bin/bash
+
+
+
 set -e
 
 
@@ -23,48 +26,50 @@ sendProgressReport() {
     curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/progress -H "Content-Type: application/json" -d "${PAYLOAD}"
 }
 
-elapsed=0
-delay=$((3 * 60)) # 3 minutes
-timeout=$(( 8 * 60 * 60 )) # 8 hours
-lastProgress=0
-# success=0
-while true; do
-    {
-        # get current number of stpes processed by listing in column and counting columns
-        stepNum=$(ls -1 $SEARCH_DIR | wc -l)
-        # remove leading whitespace so stepNum is an actual number (if dir doesn't exist, will be 0)
-        stepNum=$(($stepNum))
 
-        # echo "number of current steps: $stepNum"
-        # echo "max steps: $TOTAL_STEPS"
 
-        # stop reporting if sample close to finished
-        if [ "$stepNum" -lt $(expr "$TOTAL_STEPS" - 1) ]
-        then 
-            percentage=$( expr 100 '*' "$stepNum" / "$TOTAL_STEPS" )
-            if [ "$percentage" -gt "$lastProgress" ]
-            then 
-                # echo "would report with progress of $percentage"
-                sendProgressReport $percentage
-            else
-                echo "would NOT report anything"
-            fi
+# elapsed=0
+# delay=$((3 * 60)) # 3 minutes
+# timeout=$(( 8 * 60 * 60 )) # 8 hours
+# lastProgress=0
+# # success=0
+# while true; do
+#     {
+#         # get current number of steps processed by listing in column and counting columns
+#         stepNum=$(ls -1 $SEARCH_DIR | wc -l)
+#         # remove leading whitespace so stepNum is an actual number (if dir doesn't exist, will be 0)
+#         stepNum=$(($stepNum))
 
-            lastProgress=$percentage
+#         # echo "number of current steps: $stepNum"
+#         # echo "max steps: $TOTAL_STEPS"
 
-            # manually add "steps" to test new progress steps
-            # touch "$SEARCH_DIR/$percentage.cwl"
-        else
-            echo "sample is 1 step from finished, report nothing and end progress watching"
-            break
-        fi
-    } || {
-        echo "failed to check searchdir somehow. retry after delay"
-    }
-    if [ "$elapsed" -ge "$timeout" ]; then
-        break
-    fi 
-    sleep "$delay"
-    elapsed=$(( elapsed + delay ))
-done
-echo "watching progress reports on dir $SEARCH_DIR finished after $elapsed seconds"
+#         # stop reporting if sample close to finished
+#         if [ "$stepNum" -lt $(expr "$TOTAL_STEPS" - 1) ]
+#         then 
+#             percentage=$( expr 100 '*' "$stepNum" / "$TOTAL_STEPS" )
+#             if [ "$percentage" -gt "$lastProgress" ]
+#             then 
+#                 # echo "would report with progress of $percentage"
+#                 sendProgressReport $percentage
+#             else
+#                 echo "would NOT report anything"
+#             fi
+
+#             lastProgress=$percentage
+
+#             # manually add "steps" to test new progress steps
+#             # touch "$SEARCH_DIR/$percentage.cwl"
+#         else
+#             echo "sample is 1 step from finished, report nothing and end progress watching"
+#             break
+#         fi
+#     } || {
+#         echo "failed to check searchdir somehow. retry after delay"
+#     }
+#     if [ "$elapsed" -ge "$timeout" ]; then
+#         break
+#     fi 
+#     sleep "$delay"
+#     elapsed=$(( elapsed + delay ))
+# done
+# echo "watching progress reports on dir $SEARCH_DIR finished after $elapsed seconds"
