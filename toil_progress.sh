@@ -1,7 +1,4 @@
 #!/bin/bash
-
-
-
 set -e
 
 
@@ -26,8 +23,6 @@ sendProgressReport() {
     curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/progress -H "Content-Type: application/json" -d "${PAYLOAD}"
 }
 
-
-
 elapsed=0
 delay=$((3 * 60)) # 3 minutes
 timeout=$(( 8 * 60 * 60 )) # 8 hours
@@ -35,7 +30,7 @@ lastProgress=0
 # success=0
 while true; do
     {
-        # get current number of steps processed by listing in column and counting columns
+        # get current number of stpes processed by listing in column and counting columns
         stepNum=$(ls -1 $SEARCH_DIR | wc -l)
         # remove leading whitespace so stepNum is an actual number (if dir doesn't exist, will be 0)
         stepNum=$(($stepNum))

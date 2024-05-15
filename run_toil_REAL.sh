@@ -80,8 +80,7 @@ runSingleMode()
     RESULTS=`cat ${OUTDIR}/results.json`
     PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $RESULTS}}"
     echo $PAYLOAD > "${OUTDIR}/payload.json"
-    echo "Killing progress process and sending workflow execution results from ${OUTDIR}/payload.json"
-    kill $progressPID
+    echo "Sending workflow execution results from ${OUTDIR}/payload.json"
     curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d @"${OUTDIR}/payload.json"
 
     echo "Cleaning temporary directory ${TMPDIR}/${DAG_ID}_${RUN_ID}"
@@ -140,8 +139,7 @@ bwait -w "done(${DAG_ID}_${RUN_ID})"      # won't be caught by trap if job finis
 RESULTS=`cat ${OUTDIR}/results.json`
 PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $RESULTS}}"
 echo $PAYLOAD > "${OUTDIR}/payload.json"
-echo "Killing progress process and sending workflow execution results from ${OUTDIR}/payload.json"
-kill $progressPID
+echo "Sending workflow execution results from ${OUTDIR}/payload.json"
 curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d @"${OUTDIR}/payload.json"
 
 echo "Cleaning temporary directory ${TMPDIR}/${DAG_ID}_${RUN_ID}"
