@@ -21,16 +21,13 @@ MEMORY=${14:-"68719476736"}
 TOTAL_STEPS=${15:-"2"}
 SCRIPT_DIR=${16:-"/home/scidap/satellite/satellite/bin"}
 
-
 JOBSTORE="${TMPDIR}/${DAG_ID}_${RUN_ID}/jobstore"
 LOGS="${TMPDIR}/${DAG_ID}_${RUN_ID}/logs"
 
-
-
-# # start progress script in background and kill with this pid
+    
+# # start progress script in background and kill with this
 bash $SCRIPT_DIR/toil_progress.sh $TMPDIR $DAG_ID $RUN_ID $TOTAL_STEPS $NJS_CLIENT_PORT &
 progressPID=$!
-
 
 cleanup()
 {
@@ -79,8 +76,7 @@ runSingleMode()
     --outdir ${OUTDIR} ${WORKFLOW} ${JOB} > ${OUTDIR}/results_full.json
     toil stats ${JOBSTORE} > ${OUTDIR}/stats.txt
     cat ${OUTDIR}/results_full.json | jq 'walk(if type == "object" then with_entries(select(.key | test("listing") | not)) else . end)' > ${OUTDIR}/results.json
-
-
+    
     RESULTS=`cat ${OUTDIR}/results.json`
     PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $RESULTS}}"
     echo $PAYLOAD > "${OUTDIR}/payload.json"
@@ -144,8 +140,8 @@ bwait -w "done(${DAG_ID}_${RUN_ID})"      # won't be caught by trap if job finis
 RESULTS=`cat ${OUTDIR}/results.json`
 PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $RESULTS}}"
 echo $PAYLOAD > "${OUTDIR}/payload.json"
-kill $progressPID
 echo "Killing progress process and sending workflow execution results from ${OUTDIR}/payload.json"
+kill $progressPID
 curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d @"${OUTDIR}/payload.json"
 
 echo "Cleaning temporary directory ${TMPDIR}/${DAG_ID}_${RUN_ID}"
