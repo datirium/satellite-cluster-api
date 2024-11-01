@@ -24,10 +24,22 @@ SCRIPT_DIR=${16:-"/home/scidap/satellite/satellite/bin"}
 JOBSTORE="${TMPDIR}/${DAG_ID}_${RUN_ID}/jobstore"
 LOGS="${TMPDIR}/${DAG_ID}_${RUN_ID}/logs"
 
-
+    
 # # start progress script in background and kill with this
 bash $SCRIPT_DIR/toil_progress.sh $TMPDIR $DAG_ID $RUN_ID $TOTAL_STEPS $NJS_CLIENT_PORT &
 progressPID=$!
+
+list_descendants ()
+{
+  local children=$(ps -o pid= --ppid "$1")
+
+  for pid in $children
+  do
+    list_descendants "$pid"
+  done
+
+  echo "$children"
+}
 
 cleanup()
 {
@@ -35,9 +47,9 @@ cleanup()
   echo "Sending workflow execution error"
   PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"state\": \"failed\", \"progress\": 0, \"error\": \"failed\", \"statistics\": \"\", \"logs\": \"\"}}"
   echo $PAYLOAD
-#   kill $progressPID
   curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/progress -H "Content-Type: application/json" -d "${PAYLOAD}"
   pkill -P $progressPID
+  #kill $(list_descendants $$)
   exit ${EXIT_CODE}
 }
 trap cleanup SIGINT SIGTERM SIGKILL ERR
@@ -63,7 +75,6 @@ runSingleMode()
     curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/progress -H "Content-Type: application/json" -d "${PAYLOAD}"
 
 
-
     toil-cwl-runner \
     --logDebug \
     --stats \
@@ -83,17 +94,15 @@ runSingleMode()
     PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $RESULTS}}"
     echo $PAYLOAD > "${OUTDIR}/payload.json"
     echo "Sending workflow execution results from ${OUTDIR}/payload.json"
-    # kill $progressPID
     curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d @"${OUTDIR}/payload.json"
 
     echo "Cleaning temporary directory ${TMPDIR}/${DAG_ID}_${RUN_ID}"
-    rm -rf "${TMPDIR}/${DAG_ID}_${RUN_ID}"
+    rm -rf "${TMPDIR}"
     pkill -P $progressPID
 }
 
 runClusterMode()
 {
-trap cleanup SIGINT SIGTERM SIGKILL ERR
 replacementStr="\"location\": \"file://$SYSTEM_ROOT"
 # echo $replacementStr
 sed -i "s|\"location\": \"file:///scidap/|$replacementStr|g" $JOB
@@ -145,7 +154,6 @@ RESULTS=`cat ${OUTDIR}/results.json`
 PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $RESULTS}}"
 echo $PAYLOAD > "${OUTDIR}/payload.json"
 echo "Sending workflow execution results from ${OUTDIR}/payload.json"
-# kill $progressPID
 curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d @"${OUTDIR}/payload.json"
 
 echo "Cleaning temporary directory ${TMPDIR}/${DAG_ID}_${RUN_ID}"
@@ -159,8 +167,6 @@ bsub -J "${DAG_ID}_${RUN_ID}_cleanup" \
 rm -rf "${TMPDIR}/${DAG_ID}_${RUN_ID}"
 EOL
 bwait -w "ended(${DAG_ID}_${RUN_ID}_cleanup)"
-# waiting for singularity/toil to formally end before kill progress-process might result in progress sending back a percentage when it shouldnt have
-pkill -P $progressPID
 }
 
 
