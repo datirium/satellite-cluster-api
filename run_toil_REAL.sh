@@ -80,12 +80,29 @@ cleanup()
 
 
   # create results.json
+  ER_FILESIZE=$(du -sb "$ERROR_REPORT" | cut -f1) 
+  # #$(stat -c%s "$ERROR_REPORT")
+  EM_FILESIZE=$(du -sb "$ERROR_MSG" | cut -f1) 
+  # #$(stat -c%s "$ERROR_MSG")
 
+  # also include sha?
+
+  # reformat locatoins as toil would
+  ERROR_MSG="file://$ERROR_MSG"
+  ERROR_REPORT="file://$ERROR_REPORT"
+  
+  # ERROR_RESULTS=$( jq -n \
+    #   --arg er "$ERROR_REPORT" \
+    #   --arg em "$ERROR_MSG" \
+    #   --arg e true \
+    #   '{error_report: $er, error_msg: $em, scidap_error: $e}' )  
   ERROR_RESULTS=$( jq -n \
-                    --arg er "$ERROR_REPORT" \
-                    --arg em "$ERROR_MSG" \
-                    --arg e true \
-                    '{error_report: $er, error_msg: $em, scidap_error: $e}' )
+    --arg er "$ERROR_REPORT" \
+    --arg em "$ERROR_MSG" \
+    --arg ems "$EM_FILESIZE" \
+    --arg ers "$ER_FILESIZE" \
+    --arg e true \
+    '{scidap_error: $e, error_report: {class: "file", location: $er, nameext: ".txt", nameroot: "error_report", basename: "error_report.txt", size: $ers}, error_msg: {class: "file", location: $em, nameext: ".txt", nameroot: "error_msg", basename: "error_msg.txt", size: $ems} }' )
   echo "$ERROR_RESULTS" > $OUTDIR/results.json
 
 
