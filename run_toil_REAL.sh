@@ -54,6 +54,8 @@ cleanup()
   ERROR_REPORT=$OUTDIR/error_report.txt
   ERROR_MSG=$OUTDIR/error_msg.txt
 
+  echo "" > $ERROR_MSG
+  echo "" > $ERROR_REPORT
   # find all "error_msg.txt" files in TMPDIR
   # concat to outdir
   # for i in "$TMPDIR/**/error_msg.txt"; do # Whitespace-safe and recursive
@@ -82,7 +84,7 @@ cleanup()
   # create results.json
   ER_FILESIZE=$(du -sb "$ERROR_REPORT" | cut -f1) 
   # #$(stat -c%s "$ERROR_REPORT")
-  EM_FILESIZE=$(du -sb "$ERROR_MSG" | cut -f1) 
+  EM_FILESIZE=$( ! { du -sb "$ERROR_MSG" | cut -f1 || } echo 0) 
   # #$(stat -c%s "$ERROR_MSG")
 
   # also include sha?
@@ -107,11 +109,22 @@ cleanup()
 
 
   PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"results\": $ERROR_RESULTS}}"
-  # send report
-  # echo "Sending workflow execution error"
-  # PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"state\": \"failed\", \"progress\": 0, \"error\": \"failed\", \"statistics\": \"\", \"logs\": \"\"}}"
-  # echo $PAYLOAD
-  # curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/progress -H "Content-Type: application/json" -d "${PAYLOAD}"
+
+  ## if size of both files > 0
+  if [ $EM_FILESIZE > 0 ] && [ $ER_FILESIZE > 0 ]; then
+    echo $PAYLOAD > "${OUTDIR}/payload.json"
+    curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/results -H "Content-Type: application/json" -d @"${OUTDIR}/payload.json"
+  else 
+  # else, send error report
+
+    # send report
+    echo "Sending workflow execution error"
+    PAYLOAD="{\"payload\":{\"dag_id\": \"${DAG_ID}\", \"run_id\": \"${RUN_ID}\", \"state\": \"failed\", \"progress\": 0, \"error\": \"failed\", \"statistics\": \"\", \"logs\": \"\"}}"
+    # echo $PAYLOAD
+    curl -X POST http://localhost:${NJS_CLIENT_PORT}/airflow/progress -H "Content-Type: application/json" -d "${PAYLOAD}"
+  fi
+  
+
 
 
   pkill -P $progressPID
