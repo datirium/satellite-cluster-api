@@ -7,6 +7,12 @@ CLUSTER_VERSION=$3    # Will be always pulled from GitHub. Doesn't support build
 # WORKING_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 WORKING_DIR=/tmp
 
+echo "fixing yum issues with cenots:7"
+sed -i -e 's/^mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Base.repo
+sed -i -e 's/^#baseurl=http:\/\/mirror./baseurl=https:\/\/vault./g' /etc/yum.repos.d/CentOS-Base.repo
+yum clean all
+yum makecache
+
 echo "Packing cluster-api ($CLUSTER_VERSION) for Python ${PYTHON_VERSION}"
 echo "Current working directory ${WORKING_DIR}"
 
@@ -14,6 +20,9 @@ sleep 5
 
 SHORT_PYTHON_VERSION=$(echo ${PYTHON_VERSION} | cut -d "." -f 1,2)
 SHORT_PYTHON_VERSION_MONO=$(echo ${PYTHON_VERSION} | cut -d "." -f 1,2 | tr -d ".")
+
+echo "SHORT_PYTHON_VERSION: $SHORT_PYTHON_VERSION"
+echo "SHORT_PYTHON_VERSION_MONO: $SHORT_PYTHON_VERSION_MONO"
 
 PYTHON_URL="https://github.com/niess/python-appimage/releases/download/python${SHORT_PYTHON_VERSION}/python${PYTHON_VERSION}-cp${SHORT_PYTHON_VERSION_MONO}-cp${SHORT_PYTHON_VERSION_MONO}-manylinux${MANYLINUX_VERSION}_x86_64.AppImage"
 PYTHON_APPIMAGE="python${PYTHON_VERSION}-cp${SHORT_PYTHON_VERSION_MONO}-cp${SHORT_PYTHON_VERSION_MONO}-manylinux${MANYLINUX_VERSION}_x86_64.AppImage"
