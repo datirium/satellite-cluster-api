@@ -48,22 +48,14 @@ cleanup()
   EXIT_CODE=$?
   echo "Catching workflow error and getting error msg/report"
 
-  # TMPDIR="/Users/scrowley/Desktop/REPOS/personal_scripts/TMP_TEST_DIR"
-  # OUTDIR="/Users/scrowley/Desktop/REPOS/personal_scripts/TMP_OUT_DIR"
-
   ERROR_REPORT=$OUTDIR/error_report.txt
   ERROR_MSG=$OUTDIR/error_msg.txt
 
   echo "" > $ERROR_MSG
   echo "" > $ERROR_REPORT
+
   # find all "error_msg.txt" files in TMPDIR
   # concat to outdir
-  # for i in "$TMPDIR/**/error_msg.txt"; do # Whitespace-safe and recursive
-  #     # process "$i"
-  #     echo "$i"
-  # done
-  # find "$TMPDIR" -name "error_msg.txt" -exec process {} \;
-  # find $TMPDIR -name error_msg.txt -print0 | xargs -0 process
   find $TMPDIR -name "error_msg.txt" | while read fname; do
       # echo "$fname"
       echo $(cat $fname) >> $ERROR_MSG
@@ -82,9 +74,9 @@ cleanup()
 
 
   # create results.json
-  ER_FILESIZE=$(du -sb "$ERROR_REPORT" | cut -f1) 
+  ER_FILESIZE=$(du -sb "$ERROR_REPORT" | cut -f1)
   # #$(stat -c%s "$ERROR_REPORT")
-  EM_FILESIZE=$( ! { du -sb "$ERROR_MSG" | cut -f1 || } echo 0) 
+  EM_FILESIZE=$(du -sb "$ERROR_MSG" | cut -f1)
   # #$(stat -c%s "$ERROR_MSG")
 
   # also include sha?
